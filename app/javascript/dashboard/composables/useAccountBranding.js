@@ -35,6 +35,8 @@ export function useAccountBranding() {
 
     if (branding.value.primary_color) {
       const primaryColor = branding.value.primary_color;
+      
+      // Set CSS custom properties for brand color
       root.style.setProperty('--n-brand', primaryColor);
       root.style.setProperty('--brand-color', primaryColor);
       
@@ -42,18 +44,39 @@ export function useAccountBranding() {
       const rgb = hexToRgb(primaryColor);
       if (rgb) {
         root.style.setProperty('--brand-color-rgb', rgb);
+        root.style.setProperty('--text-blue', rgb);
       }
       
       // Apply to blue colors for buttons and links (used by Tailwind)
-      // These will override the default blue colors
+      // These will override the default blue colors dynamically
       root.style.setProperty('--blue-9', primaryColor);
       root.style.setProperty('--blue-10', primaryColor);
       root.style.setProperty('--blue-11', primaryColor);
       root.style.setProperty('--blue-12', primaryColor);
       
-      // Also set text-blue to use brand color
-      if (rgb) {
-        root.style.setProperty('--text-blue', rgb);
+      // Override Tailwind's n-brand color class dynamically
+      // This ensures bg-n-brand uses the custom color
+      const style = document.createElement('style');
+      style.id = 'branding-override';
+      style.textContent = `
+        .bg-n-brand { background-color: ${primaryColor} !important; }
+        .text-n-brand { color: ${primaryColor} !important; }
+        .border-n-brand { border-color: ${primaryColor} !important; }
+        .outline-n-brand { outline-color: ${primaryColor} !important; }
+      `;
+      
+      // Remove existing override if any
+      const existingOverride = document.getElementById('branding-override');
+      if (existingOverride) {
+        existingOverride.remove();
+      }
+      
+      document.head.appendChild(style);
+    } else {
+      // Remove override if no branding color
+      const existingOverride = document.getElementById('branding-override');
+      if (existingOverride) {
+        existingOverride.remove();
       }
     }
 
