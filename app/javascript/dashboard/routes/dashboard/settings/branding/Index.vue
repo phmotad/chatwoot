@@ -37,6 +37,10 @@ const logoPreview = ref(null);
 const logoDarkPreview = ref(null);
 const logoThumbnailPreview = ref(null);
 
+const isUploadingLogo = ref(false);
+const isUploadingLogoDark = ref(false);
+const isUploadingLogoThumbnail = ref(false);
+
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ALLOWED_TYPES = ['image/svg+xml', 'image/png', 'image/jpeg', 'image/jpg'];
 
@@ -78,7 +82,7 @@ const validateFile = file => {
   return { valid: true };
 };
 
-  const uploadFile = (file, callback) => {
+  const uploadFile = (file, callback, onStart, onEnd) => {
     if (!file) {
       callback(null);
       return;
@@ -90,6 +94,8 @@ const validateFile = file => {
       callback(null);
       return;
     }
+
+    if (onStart) onStart();
 
     const upload = new DirectUpload(
       file,
@@ -105,6 +111,7 @@ const validateFile = file => {
     );
 
     upload.create((error, blob) => {
+      if (onEnd) onEnd();
       if (error) {
         useAlert(error);
         callback(null);
@@ -125,9 +132,18 @@ const handleLogoUpload = event => {
   };
   reader.readAsDataURL(file);
 
-  uploadFile(file, blobId => {
-    logoBlobId.value = blobId;
-  });
+  uploadFile(
+    file,
+    blobId => {
+      logoBlobId.value = blobId;
+    },
+    () => {
+      isUploadingLogo.value = true;
+    },
+    () => {
+      isUploadingLogo.value = false;
+    }
+  );
 };
 
 const handleLogoDarkUpload = event => {
@@ -140,9 +156,18 @@ const handleLogoDarkUpload = event => {
   };
   reader.readAsDataURL(file);
 
-  uploadFile(file, blobId => {
-    logoDarkBlobId.value = blobId;
-  });
+  uploadFile(
+    file,
+    blobId => {
+      logoDarkBlobId.value = blobId;
+    },
+    () => {
+      isUploadingLogoDark.value = true;
+    },
+    () => {
+      isUploadingLogoDark.value = false;
+    }
+  );
 };
 
 const handleLogoThumbnailUpload = event => {
@@ -155,12 +180,27 @@ const handleLogoThumbnailUpload = event => {
   };
   reader.readAsDataURL(file);
 
-  uploadFile(file, blobId => {
-    logoThumbnailBlobId.value = blobId;
-  });
+  uploadFile(
+    file,
+    blobId => {
+      logoThumbnailBlobId.value = blobId;
+    },
+    () => {
+      isUploadingLogoThumbnail.value = true;
+    },
+    () => {
+      isUploadingLogoThumbnail.value = false;
+    }
+  );
 };
 
 const handleSubmit = async () => {
+  // Check if uploads are still in progress
+  if (isUploadingLogo.value || isUploadingLogoDark.value || isUploadingLogoThumbnail.value) {
+    useAlert(t('BRANDING.UPLOAD_IN_PROGRESS', { defaultValue: 'Aguarde o upload dos arquivos terminar antes de salvar.' }));
+    return;
+  }
+
   // Validate colors
   if (!validateColor(primaryColor.value)) {
     useAlert(t('BRANDING.INVALID_COLOR_ERROR'));
@@ -186,8 +226,25 @@ const handleSubmit = async () => {
     };
 
     await updateBranding(brandingData);
+    
+    // Refresh branding data after update
+    await fetchBranding();
+    
+    // Update previews with new URLs
+    if (branding.value) {
+      logoPreview.value = branding.value.logo_url;
+      logoDarkPreview.value = branding.value.logo_dark_url;
+      logoThumbnailPreview.value = branding.value.logo_thumbnail_url;
+    }
+    
+    // Clear blob IDs after successful save
+    logoBlobId.value = null;
+    logoDarkBlobId.value = null;
+    logoThumbnailBlobId.value = null;
+    
     useAlert(t('BRANDING.UPDATE_SUCCESS'));
   } catch (error) {
+    console.error('Error updating branding:', error);
     useAlert(t('BRANDING.UPDATE_ERROR'));
   } finally {
     isUpdating.value = false;
@@ -236,7 +293,7 @@ const handleReset = async () => {
             'Personalize as cores e logos da sua empresa. As alterações serão aplicadas imediatamente na interface.',
         })
       "
-      icon-name="paint-brush"
+      icon-name="brush"
     />
     <div class="flex-grow flex-shrink min-w-0 mt-3">
       <SectionLayout
@@ -247,7 +304,7 @@ const handleReset = async () => {
           })
         "
       >
-        <form class="grid gap-4" @submit.prevent="handleSubmit">
+        <div class="grid gap-4">
           <WithLabel
             :label="t('BRANDING.PRIMARY_COLOR', { defaultValue: 'Cor Primária' })"
           >
@@ -265,7 +322,7 @@ const handleReset = async () => {
               {{ t('BRANDING.SECONDARY_COLOR_HELP', { defaultValue: 'Cor secundária da marca' }) }}
             </template>
           </WithLabel>
-        </form>
+        </div>
       </SectionLayout>
 
       <SectionLayout

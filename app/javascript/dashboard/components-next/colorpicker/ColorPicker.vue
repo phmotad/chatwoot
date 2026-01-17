@@ -35,28 +35,29 @@ const pickerRef = ref(null);
 
 <template>
   <div ref="pickerRef" class="relative w-fit">
+    <Button
+      color="slate"
+      icon="i-lucide-pipette"
+      trailing-icon
+      class="!px-3 !py-3 [&>svg]:w-4 [&>svg]:h-4"
+      @click.stop="toggleColorPicker"
+    >
+      <div class="flex items-center flex-grow gap-2">
+        <span
+          class="rounded-md size-4"
+          :style="{ backgroundColor: modelValue }"
+        />
+        <span class="min-w-0 truncate">{{ modelValue }}</span>
+      </div>
+    </Button>
     <OnClickOutside @trigger="closeTogglePicker">
-      <Button
-        color="slate"
-        icon="i-lucide-pipette"
-        trailing-icon
-        class="!px-3 !py-3 [&>svg]:w-4 [&>svg]:h-4"
-        @click="toggleColorPicker"
-      >
-        <div class="flex items-center flex-grow gap-2">
-          <span
-            class="rounded-md size-4"
-            :style="{ backgroundColor: modelValue }"
-          />
-          <span class="min-w-0 truncate">{{ modelValue }}</span>
-        </div>
-      </Button>
       <Chrome
         v-if="isPickerOpen"
         disable-alpha
         :model-value="modelValue"
         class="colorpicker--chrome"
         @update:model-value="updateColor"
+        @click.stop
       />
     </OnClickOutside>
   </div>
