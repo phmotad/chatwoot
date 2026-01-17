@@ -75,6 +75,10 @@ Rails.application.routes.draw do
             resources :documents, only: [:index, :show, :create, :destroy]
           end
           resource :saml_settings, only: [:show, :create, :update, :destroy]
+          resource :branding, only: [:show, :update], controller: 'branding' do
+            post :reset, on: :collection
+          end
+          resource :direct_uploads, only: [:create], controller: 'direct_uploads'
           resources :agent_bots, only: [:index, :create, :show, :update, :destroy] do
             delete :avatar, on: :member
             post :reset_access_token, on: :member

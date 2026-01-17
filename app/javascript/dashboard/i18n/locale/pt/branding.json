@@ -1,0 +1,27 @@
+{
+  "BRANDING": {
+    "TITLE": "Personalização de Branding",
+    "DESCRIPTION": "Personalize as cores e logos da sua empresa. As alterações serão aplicadas imediatamente na interface.",
+    "COLORS_SECTION": "Cores",
+    "COLORS_DESCRIPTION": "Defina as cores primária e secundária da sua marca.",
+    "PRIMARY_COLOR": "Cor Primária",
+    "PRIMARY_COLOR_HELP": "Cor principal da marca",
+    "SECONDARY_COLOR": "Cor Secundária",
+    "SECONDARY_COLOR_HELP": "Cor secundária da marca",
+    "LOGOS_SECTION": "Logos",
+    "LOGOS_DESCRIPTION": "Faça upload dos logos da sua empresa. Formatos suportados: SVG, PNG, JPG (máx 5MB).",
+    "LOGO": "Logo (Modo Claro)",
+    "LOGO_DARK": "Logo (Modo Escuro)",
+    "LOGO_THUMBNAIL": "Logo Thumbnail",
+    "SAVE": "Salvar",
+    "RESET": "Resetar para Padrão",
+    "UPDATE_SUCCESS": "Branding atualizado com sucesso",
+    "UPDATE_ERROR": "Erro ao atualizar branding",
+    "RESET_SUCCESS": "Branding resetado para os valores padrão",
+    "RESET_ERROR": "Erro ao resetar branding",
+    "RESET_CONFIRM": "Tem certeza que deseja resetar o branding para os valores padrão?",
+    "INVALID_COLOR_ERROR": "Por favor, insira uma cor hexadecimal válida (ex: #FF5C00)",
+    "FILE_TYPE_ERROR": "Tipo de arquivo não suportado. Formatos permitidos: {types}",
+    "FILE_SIZE_ERROR": "Arquivo muito grande. Tamanho máximo: {maxSize}"
+  }
+}

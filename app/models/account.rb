@@ -29,6 +29,7 @@ class Account < ApplicationRecord
   include Featurable
   include CacheKeys
   include CaptainFeaturable
+  include Rails.application.routes.url_helpers
 
   SETTINGS_PARAMS_SCHEMA = {
     'type': 'object',
@@ -66,8 +67,29 @@ class Account < ApplicationRecord
             'help_center_search': { 'type': %w[boolean null] }
           },
           'additionalProperties': false
+        },
+        'branding': {
+          'type': %w[object null],
+          'properties': {
+            'primary_color': { 'type': %w[string null], 'pattern': '^#[0-9A-Fa-f]{6}$' },
+            'secondary_color': { 'type': %w[string null], 'pattern': '^#[0-9A-Fa-f]{6}$' },
+            'custom_colors': { 'type': %w[object null] }
+          },
+          'required': [],
+          'additionalProperties': true
         }
       },
+    'required': [],
+    'additionalProperties': true
+  }.to_json.freeze
+
+  BRANDING_SETTINGS_SCHEMA = {
+    'type': 'object',
+    'properties': {
+      'primary_color': { 'type': 'string', 'pattern': '^#[0-9A-Fa-f]{6}$' },
+      'secondary_color': { 'type': 'string', 'pattern': '^#[0-9A-Fa-f]{6}$' },
+      'custom_colors': { 'type': 'object' }
+    },
     'required': [],
     'additionalProperties': true
   }.to_json.freeze
@@ -82,11 +104,15 @@ class Account < ApplicationRecord
   validates_with JsonSchemaValidator,
                  schema: SETTINGS_PARAMS_SCHEMA,
                  attribute_resolver: ->(record) { record.settings }
+  validates_with JsonSchemaValidator,
+                 schema: BRANDING_SETTINGS_SCHEMA,
+                 attribute_resolver: ->(record) { record.settings['branding'] }
 
   store_accessor :settings, :auto_resolve_after, :auto_resolve_message, :auto_resolve_ignore_waiting
 
   store_accessor :settings, :audio_transcriptions, :auto_resolve_label, :conversation_required_attributes
   store_accessor :settings, :captain_models, :captain_features
+  store_accessor :settings, :branding_primary_color, :branding_secondary_color
 
   has_many :account_users, dependent: :destroy_async
   has_many :agent_bot_inboxes, dependent: :destroy_async
@@ -132,6 +158,9 @@ class Account < ApplicationRecord
   has_many :working_hours, dependent: :destroy_async
 
   has_one_attached :contacts_export
+  has_one_attached :branding_logo
+  has_one_attached :branding_logo_dark
+  has_one_attached :branding_logo_thumbnail
 
   enum :locale, LANGUAGES_CONFIG.map { |key, val| [val[:iso_639_1_code], key] }.to_h, prefix: true
   enum :status, { active: 0, suspended: 1 }
@@ -191,6 +220,34 @@ class Account < ApplicationRecord
     ISO_639.find(account_locale)&.english_name&.downcase || 'english'
   end
 
+  def branding_settings
+    default = {
+      primary_color: GlobalConfig.get('BRAND_COLOR')['BRAND_COLOR'] || '#FF5C00',
+      secondary_color: '#FF7A33',
+      logo_url: branding_logo.attached? ? rails_blob_path(branding_logo, only_path: true) : (GlobalConfig.get('LOGO')['LOGO'] || '/brand-assets/logo.svg'),
+      logo_dark_url: branding_logo_dark.attached? ? rails_blob_path(branding_logo_dark, only_path: true) : (GlobalConfig.get('LOGO_DARK')['LOGO_DARK'] || '/brand-assets/logo_dark.svg'),
+      logo_thumbnail_url: branding_logo_thumbnail.attached? ? rails_blob_path(branding_logo_thumbnail, only_path: true) : (GlobalConfig.get('LOGO_THUMBNAIL')['LOGO_THUMBNAIL'] || '/brand-assets/logo_thumbnail.svg'),
+      is_customized: branding_customized?
+    }
+
+    branding = settings['branding'] || {}
+    default.deep_merge(branding.symbolize_keys)
+  end
+
+  def update_branding(params)
+    branding = settings['branding'] || {}
+
+    branding['primary_color'] = params[:primary_color] if params[:primary_color].present?
+    branding['secondary_color'] = params[:secondary_color] if params[:secondary_color].present?
+
+    branding_logo.attach(params[:logo]) if params[:logo].present?
+    branding_logo_dark.attach(params[:logo_dark]) if params[:logo_dark].present?
+    branding_logo_thumbnail.attach(params[:logo_thumbnail]) if params[:logo_thumbnail].present?
+
+    settings['branding'] = branding
+    save
+  end
+
   private
 
   def notify_creation
@@ -212,6 +269,15 @@ class Account < ApplicationRecord
   def remove_account_sequences
     ActiveRecord::Base.connection.exec_query("drop sequence IF EXISTS camp_dpid_seq_#{id}")
     ActiveRecord::Base.connection.exec_query("drop sequence IF EXISTS conv_dpid_seq_#{id}")
+  end
+
+  def branding_customized?
+    branding = settings['branding'] || {}
+    branding['primary_color'].present? ||
+      branding['secondary_color'].present? ||
+      branding_logo.attached? ||
+      branding_logo_dark.attached? ||
+      branding_logo_thumbnail.attached?
   end
 end
 

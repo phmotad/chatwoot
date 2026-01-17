@@ -1,6 +1,7 @@
 import * as MutationHelpers from 'shared/helpers/vuex/mutationHelpers';
 import * as types from '../mutation-types';
 import AccountAPI from '../../api/account';
+import BrandingAPI from '../../api/branding';
 import { differenceInDays } from 'date-fns';
 import EnterpriseAccountAPI from '../../api/enterprise/account';
 import { throwErrorMessage } from '../utils/api';
@@ -24,7 +25,12 @@ const state = {
 
 export const getters = {
   getAccount: $state => id => {
-    return findRecordById($state, id);
+    const account = findRecordById($state, id);
+    return account;
+  },
+  getBranding: $state => id => {
+    const account = findRecordById($state, id);
+    return account?.branding_settings || {};
   },
   getUIFlags($state) {
     return $state.uiFlags;
@@ -156,6 +162,55 @@ export const actions = {
   getCacheKeys: async () => {
     return AccountAPI.getCacheKeys();
   },
+
+  fetchBranding: async ({ commit }, accountId) => {
+    try {
+      const response = await BrandingAPI.get(accountId);
+      commit(types.default.SET_ACCOUNT_BRANDING, {
+        accountId,
+        branding: response.data.branding,
+      });
+    } catch (error) {
+      throwErrorMessage(error);
+      throw error;
+    }
+  },
+
+  updateBranding: async ({ commit, dispatch }, { accountId, branding }) => {
+    commit(types.default.SET_ACCOUNT_UI_FLAG, { isUpdating: true });
+    try {
+      const response = await BrandingAPI.update(accountId, { branding });
+      commit(types.default.SET_ACCOUNT_BRANDING, {
+        accountId,
+        branding: response.data.branding,
+      });
+      // Update account in store to reflect branding changes
+      await dispatch('get');
+      commit(types.default.SET_ACCOUNT_UI_FLAG, { isUpdating: false });
+    } catch (error) {
+      commit(types.default.SET_ACCOUNT_UI_FLAG, { isUpdating: false });
+      throwErrorMessage(error);
+      throw error;
+    }
+  },
+
+  resetBranding: async ({ commit, dispatch }, accountId) => {
+    commit(types.default.SET_ACCOUNT_UI_FLAG, { isUpdating: true });
+    try {
+      const response = await BrandingAPI.reset(accountId);
+      commit(types.default.SET_ACCOUNT_BRANDING, {
+        accountId,
+        branding: response.data.branding,
+      });
+      // Update account in store to reflect branding changes
+      await dispatch('get');
+      commit(types.default.SET_ACCOUNT_UI_FLAG, { isUpdating: false });
+    } catch (error) {
+      commit(types.default.SET_ACCOUNT_UI_FLAG, { isUpdating: false });
+      throwErrorMessage(error);
+      throw error;
+    }
+  },
 };
 
 export const mutations = {
@@ -168,6 +223,12 @@ export const mutations = {
   [types.default.ADD_ACCOUNT]: MutationHelpers.setSingleRecord,
   [types.default.EDIT_ACCOUNT]: MutationHelpers.update,
   [types.default.SET_ACCOUNT_LIMITS]: MutationHelpers.updateAttributes,
+  [types.default.SET_ACCOUNT_BRANDING]($state, { accountId, branding }) {
+    const account = findRecordById($state, accountId);
+    if (account) {
+      account.branding_settings = branding;
+    }
+  },
 };
 
 export default {

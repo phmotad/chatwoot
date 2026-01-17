@@ -1,0 +1,11 @@
+# Sempre manter nossa versão
+/theme/colors.js merge=ours
+/config/installation_config.yml merge=ours
+/public/brand-assets/* merge=ours
+
+# Merge cuidadoso (union)
+/app/models/account.rb merge=union
+
+# Nunca modificar
+/enterprise/** merge=ours
+/LICENSE merge=ours
