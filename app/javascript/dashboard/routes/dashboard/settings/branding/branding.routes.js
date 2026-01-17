@@ -1,4 +1,4 @@
-import { frontendURL } from '../../../helper/URLHelper';
+import { frontendURL } from '../../../../helper/URLHelper';
 import SettingsWrapper from '../SettingsWrapper.vue';
 
 export default {
