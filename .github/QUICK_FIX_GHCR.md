@@ -6,9 +6,16 @@
 
 Acesse: `https://github.com/phmotad/chatwoot/settings/actions`
 
-Em **"Workflow permissions"**:
-- ✅ Selecione **"Read and write permissions"**
-- ✅ Salve as alterações
+Role até **"Workflow permissions"** e configure:
+
+**Permissões de fluxo de trabalho:**
+- ✅ Selecione **"Permissões de leitura e gravação"** (Read and write permissions)
+- ✅ Marque **"Permitir que o GitHub Actions crie e aprove solicitações pull"** (opcional)
+
+**Permitir ações:**
+- ✅ Selecione **"Permitir todas as ações e fluxos de trabalho reutilizáveis"**
+
+**Salve as alterações** (botão no final da página)
 
 ### 2. Re-executar o Workflow
 
