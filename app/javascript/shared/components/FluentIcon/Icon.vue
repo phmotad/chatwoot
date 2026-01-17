@@ -31,6 +31,13 @@ export default {
     pathSource() {
       // To support icons with multiple paths
       const path = this.icons[`${this.icon}-${this.type}`];
+      
+      // Return empty array if icon not found
+      if (!path) {
+        console.warn(`Icon "${this.icon}-${this.type}" not found in fluent-icon library`);
+        return [];
+      }
+      
       if (path.constructor === Array) {
         return path;
       }

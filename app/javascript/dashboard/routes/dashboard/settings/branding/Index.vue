@@ -293,7 +293,7 @@ const handleReset = async () => {
             'Personalize as cores e logos da sua empresa. As alterações serão aplicadas imediatamente na interface.',
         })
       "
-      icon-name="brush"
+      icon-name="color"
     />
     <div class="flex-grow flex-shrink min-w-0 mt-3">
       <SectionLayout
