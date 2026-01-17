@@ -240,11 +240,10 @@ class Account < ApplicationRecord
     branding['primary_color'] = params[:primary_color] if params[:primary_color].present?
     branding['secondary_color'] = params[:secondary_color] if params[:secondary_color].present?
 
-    branding_logo.attach(params[:logo]) if params[:logo].present?
-    branding_logo_dark.attach(params[:logo_dark]) if params[:logo_dark].present?
-    branding_logo_thumbnail.attach(params[:logo_thumbnail]) if params[:logo_thumbnail].present?
+    # Logos are processed separately in the controller via process_attached_logo
+    # This method only handles color updates
 
-    settings['branding'] = branding
+    self.settings['branding'] = branding
     save
   end
 

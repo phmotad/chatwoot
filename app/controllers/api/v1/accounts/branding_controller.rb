@@ -28,17 +28,36 @@ class Api::V1::Accounts::BrandingController < Api::V1::Accounts::BaseController
       end
     rescue ActiveRecord::RecordInvalid => e
       render_record_invalid(e)
+    rescue StandardError => e
+      Rails.logger.error("Error updating branding: #{e.message}")
+      Rails.logger.error(e.backtrace.join("\n"))
+      render json: { error: 'Failed to update branding' }, status: :internal_server_error
     end
   end
 
   def reset
-    Current.account.settings.delete('branding')
-    Current.account.branding_logo.purge if Current.account.branding_logo.attached?
-    Current.account.branding_logo_dark.purge if Current.account.branding_logo_dark.attached?
-    Current.account.branding_logo_thumbnail.purge if Current.account.branding_logo_thumbnail.attached?
-    Current.account.save!
-    @branding = Current.account.branding_settings
-    render :show
+    ActiveRecord::Base.transaction do
+      # Remove branding settings
+      if Current.account.settings['branding'].present?
+        Current.account.settings.delete('branding')
+      end
+      
+      # Purge attached logos
+      Current.account.branding_logo.purge if Current.account.branding_logo.attached?
+      Current.account.branding_logo_dark.purge if Current.account.branding_logo_dark.attached?
+      Current.account.branding_logo_thumbnail.purge if Current.account.branding_logo_thumbnail.attached?
+      
+      if Current.account.save
+        @branding = Current.account.branding_settings
+        render :show
+      else
+        render_error_response(Current.account)
+      end
+    rescue StandardError => e
+      Rails.logger.error("Error resetting branding: #{e.message}")
+      Rails.logger.error(e.backtrace.join("\n"))
+      render json: { error: 'Failed to reset branding' }, status: :internal_server_error
+    end
   end
 
   private
@@ -56,8 +75,20 @@ class Api::V1::Accounts::BrandingController < Api::V1::Accounts::BaseController
   def process_attached_logo(attachment_name, blob_id)
     return unless blob_id.present?
 
-    blob = ActiveStorage::Blob.find_signed(blob_id)
-    Current.account.public_send(attachment_name).attach(blob)
+    begin
+      blob = ActiveStorage::Blob.find_signed(blob_id)
+      if blob
+        Current.account.public_send(attachment_name).attach(blob)
+      else
+        Rails.logger.warn("Blob not found for signed_id: #{blob_id}")
+      end
+    rescue ActiveSupport::MessageVerifier::InvalidSignature => e
+      Rails.logger.error("Invalid blob signature: #{e.message}")
+      raise
+    rescue StandardError => e
+      Rails.logger.error("Error processing logo attachment #{attachment_name}: #{e.message}")
+      raise
+    end
   end
 
   def check_authorization

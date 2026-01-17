@@ -86,7 +86,14 @@ export function useAccountBranding() {
 
     // Update favicon if logo thumbnail is available
     if (branding.value.logo_thumbnail_url) {
-      updateFavicon(branding.value.logo_thumbnail_url);
+      // Use absolute URL if it's a relative path
+      const faviconUrl = branding.value.logo_thumbnail_url.startsWith('http') 
+        ? branding.value.logo_thumbnail_url 
+        : `${window.location.origin}${branding.value.logo_thumbnail_url}`;
+      updateFavicon(faviconUrl);
+    } else {
+      // Reset to default if no custom thumbnail
+      updateFavicon(null);
     }
   };
 
@@ -94,21 +101,33 @@ export function useAccountBranding() {
    * Updates the favicon dynamically
    */
   const updateFavicon = (url) => {
-    if (!url) return;
+    if (!url) {
+      // Reset to default if no URL provided
+      const defaultFavicon = document.querySelector('link[rel="icon"]:not(.branding-favicon)');
+      if (defaultFavicon) {
+        const brandingFavicon = document.querySelector('link.branding-favicon');
+        if (brandingFavicon) {
+          brandingFavicon.remove();
+        }
+      }
+      return;
+    }
     
     // Remove existing branding favicon links
     const existingFavicons = document.querySelectorAll('link.branding-favicon');
     existingFavicons.forEach(link => link.remove());
 
-    // Update or create favicon link
-    let faviconLink = document.querySelector('link[rel="icon"]:not(.branding-favicon)');
+    // Find all existing favicon links
+    const allFaviconLinks = document.querySelectorAll('link[rel="icon"], link[rel="shortcut icon"]');
     
-    if (faviconLink) {
-      // Update existing favicon
-      faviconLink.href = url;
+    // Update existing favicon links or create new one
+    if (allFaviconLinks.length > 0) {
+      allFaviconLinks.forEach(link => {
+        link.href = url;
+      });
     } else {
       // Create new favicon link
-      faviconLink = document.createElement('link');
+      const faviconLink = document.createElement('link');
       faviconLink.rel = 'icon';
       faviconLink.type = url.includes('.svg') ? 'image/svg+xml' : 'image/png';
       faviconLink.href = url;
@@ -116,11 +135,17 @@ export function useAccountBranding() {
       document.head.appendChild(faviconLink);
     }
     
-    // Also update the 512x512 favicon if it exists
-    const largeFavicon = document.querySelector('link[rel="icon"][sizes="512x512"]');
-    if (largeFavicon) {
-      largeFavicon.href = url;
+    // Also create/update the 512x512 favicon
+    let largeFavicon = document.querySelector('link[rel="icon"][sizes="512x512"]');
+    if (!largeFavicon) {
+      largeFavicon = document.createElement('link');
+      largeFavicon.rel = 'icon';
+      largeFavicon.type = url.includes('.svg') ? 'image/svg+xml' : 'image/png';
+      largeFavicon.sizes = '512x512';
+      largeFavicon.classList.add('branding-favicon');
+      document.head.appendChild(largeFavicon);
     }
+    largeFavicon.href = url;
   };
 
   /**
@@ -169,14 +194,8 @@ export function useAccountBranding() {
       await new Promise(resolve => setTimeout(resolve, 100));
       applyBranding();
       
-      // Reset favicon to default
-      const defaultFavicon = document.querySelector('link[rel="icon"]:not(.branding-favicon)');
-      if (defaultFavicon) {
-        const brandingFavicon = document.querySelector('link.branding-favicon');
-        if (brandingFavicon) {
-          brandingFavicon.remove();
-        }
-      }
+      // Reset favicon to default (will be handled by applyBranding if logo_thumbnail_url is null)
+      updateFavicon(null);
     } catch (error) {
       console.error('Error resetting branding:', error);
       throw error;
