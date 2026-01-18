@@ -1,4 +1,4 @@
-import { computed, watch, onMounted } from 'vue';
+import { computed, watch, onMounted, onBeforeUnmount } from 'vue';
 import { useStore } from 'vuex';
 import { useAccount } from './useAccount';
 
