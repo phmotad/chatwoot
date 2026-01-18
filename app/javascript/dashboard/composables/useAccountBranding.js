@@ -34,55 +34,53 @@ export function useAccountBranding() {
     // Use branding color if available, otherwise use FireAgent orange default
     const primaryColor = branding.value?.primary_color || '#FF5C00';
     
-    if (primaryColor) {
-      
-      // Set CSS custom properties for brand color
-      root.style.setProperty('--n-brand', primaryColor);
-      root.style.setProperty('--brand-color', primaryColor);
-      
-      // Convert to RGB for use in rgba() functions
-      const rgb = hexToRgb(primaryColor);
-      if (rgb) {
-        root.style.setProperty('--brand-color-rgb', rgb);
-        root.style.setProperty('--text-blue', rgb);
-      }
-      
-      // Apply to blue colors for buttons and links (used by Tailwind)
-      // These will override the default blue colors dynamically
-      root.style.setProperty('--blue-9', primaryColor);
-      root.style.setProperty('--blue-10', primaryColor);
-      root.style.setProperty('--blue-11', primaryColor);
-      root.style.setProperty('--blue-12', primaryColor);
-      
-      // Override Tailwind's n-brand color class dynamically
-      // This ensures bg-n-brand uses the custom color
-      const style = document.createElement('style');
+    // Always apply color (default or custom)
+    // Set CSS custom properties for brand color
+    root.style.setProperty('--n-brand', primaryColor);
+    root.style.setProperty('--brand-color', primaryColor);
+    
+    // Convert to RGB for use in rgba() functions
+    const rgb = hexToRgb(primaryColor);
+    if (rgb) {
+      root.style.setProperty('--brand-color-rgb', rgb);
+      root.style.setProperty('--text-blue', rgb);
+    }
+    
+    // Apply to blue colors for buttons and links (used by Tailwind)
+    // These will override the default blue colors dynamically
+    root.style.setProperty('--blue-9', primaryColor);
+    root.style.setProperty('--blue-10', primaryColor);
+    root.style.setProperty('--blue-11', primaryColor);
+    root.style.setProperty('--blue-12', primaryColor);
+    
+    // Override Tailwind's n-brand color class dynamically
+    // This ensures bg-n-brand uses the custom color
+    let style = document.getElementById('branding-override');
+    if (!style) {
+      style = document.createElement('style');
       style.id = 'branding-override';
-      style.textContent = `
-        .bg-n-brand { background-color: ${primaryColor} !important; }
-        .text-n-brand { color: ${primaryColor} !important; }
-        .border-n-brand { border-color: ${primaryColor} !important; }
-        .outline-n-brand { outline-color: ${primaryColor} !important; }
-      `;
-      
-      // Remove existing override if any
-      const existingOverride = document.getElementById('branding-override');
-      if (existingOverride) {
-        existingOverride.remove();
-      }
-      
       document.head.appendChild(style);
-    } else {
-      // Remove override if no branding color
-      const existingOverride = document.getElementById('branding-override');
-      if (existingOverride) {
-        existingOverride.remove();
+    }
+    style.textContent = `
+      :root {
+        --n-brand: ${primaryColor};
+        --brand-color: ${primaryColor};
+        --brand-color-rgb: ${rgb};
+        --blue-9: ${primaryColor};
+        --blue-10: ${primaryColor};
+        --blue-11: ${primaryColor};
+        --blue-12: ${primaryColor};
+        --text-blue: ${rgb};
       }
-    }
+      .bg-n-brand { background-color: ${primaryColor} !important; }
+      .text-n-brand { color: ${primaryColor} !important; }
+      .border-n-brand { border-color: ${primaryColor} !important; }
+      .outline-n-brand { outline-color: ${primaryColor} !important; }
+    `;
 
-    if (branding.value.secondary_color) {
-      root.style.setProperty('--brand-secondary', branding.value.secondary_color);
-    }
+    // Use secondary color if available, otherwise use FireAgent secondary orange default
+    const secondaryColor = branding.value?.secondary_color || '#FF7A33';
+    root.style.setProperty('--brand-secondary', secondaryColor);
 
     // Update favicon if logo thumbnail is available
     if (branding.value.logo_thumbnail_url) {
