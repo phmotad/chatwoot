@@ -180,12 +180,23 @@ export const actions = {
     commit(types.default.SET_ACCOUNT_UI_FLAG, { isUpdating: true });
     try {
       const response = await BrandingAPI.update(accountId, { branding });
+      const brandingData = response.data.branding;
+      
+      // Update branding in store immediately
       commit(types.default.SET_ACCOUNT_BRANDING, {
         accountId,
-        branding: response.data.branding,
+        branding: brandingData,
       });
-      // Update account in store to reflect branding changes
+      
+      // Update account in store to reflect branding changes (this will refresh the account)
       await dispatch('get');
+      
+      // Ensure branding is still set after get() updates the account
+      commit(types.default.SET_ACCOUNT_BRANDING, {
+        accountId,
+        branding: brandingData,
+      });
+      
       commit(types.default.SET_ACCOUNT_UI_FLAG, { isUpdating: false });
     } catch (error) {
       commit(types.default.SET_ACCOUNT_UI_FLAG, { isUpdating: false });
@@ -198,12 +209,23 @@ export const actions = {
     commit(types.default.SET_ACCOUNT_UI_FLAG, { isUpdating: true });
     try {
       const response = await BrandingAPI.reset(accountId);
+      const brandingData = response.data.branding;
+      
+      // Update branding in store immediately
       commit(types.default.SET_ACCOUNT_BRANDING, {
         accountId,
-        branding: response.data.branding,
+        branding: brandingData,
       });
-      // Update account in store to reflect branding changes
+      
+      // Update account in store to reflect branding changes (this will refresh the account)
       await dispatch('get');
+      
+      // Ensure branding is still set after get() updates the account
+      commit(types.default.SET_ACCOUNT_BRANDING, {
+        accountId,
+        branding: brandingData,
+      });
+      
       commit(types.default.SET_ACCOUNT_UI_FLAG, { isUpdating: false });
     } catch (error) {
       commit(types.default.SET_ACCOUNT_UI_FLAG, { isUpdating: false });

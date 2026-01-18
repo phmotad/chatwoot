@@ -20,14 +20,19 @@ class Api::V1::Accounts::BrandingController < Api::V1::Accounts::BaseController
       process_attached_logo(:branding_logo_dark, params.dig(:branding, :logo_dark_blob_id)) if params.dig(:branding, :logo_dark_blob_id).present?
       process_attached_logo(:branding_logo_thumbnail, params.dig(:branding, :logo_thumbnail_blob_id)) if params.dig(:branding, :logo_thumbnail_blob_id).present?
 
-      if Current.account.update_branding(colors_params)
-        @branding = Current.account.branding_settings
-        render :show
-      else
-        render_error_response(Current.account)
-      end
+      # Atualizar cores no settings
+      Current.account.update_branding(colors_params)
+      
+      # Garantir que tudo foi salvo
+      Current.account.save!
+      
+      @branding = Current.account.branding_settings
+      render :show
     rescue ActiveRecord::RecordInvalid => e
       render_record_invalid(e)
+    rescue ActiveStorage::FileNotFoundError, ActiveStorage::IntegrityError => e
+      Rails.logger.error("Error processing logo: #{e.message}")
+      render json: { error: e.message }, status: :unprocessable_entity
     rescue StandardError => e
       Rails.logger.error("Error updating branding: #{e.message}")
       Rails.logger.error(e.backtrace.join("\n"))
@@ -38,21 +43,20 @@ class Api::V1::Accounts::BrandingController < Api::V1::Accounts::BaseController
   def reset
     ActiveRecord::Base.transaction do
       # Remove branding settings
-      if Current.account.settings['branding'].present?
-        Current.account.settings.delete('branding')
-      end
+      Current.account.settings.delete('branding') if Current.account.settings['branding'].present?
       
       # Purge attached logos
       Current.account.branding_logo.purge if Current.account.branding_logo.attached?
       Current.account.branding_logo_dark.purge if Current.account.branding_logo_dark.attached?
       Current.account.branding_logo_thumbnail.purge if Current.account.branding_logo_thumbnail.attached?
       
-      if Current.account.save
-        @branding = Current.account.branding_settings
-        render :show
-      else
-        render_error_response(Current.account)
-      end
+      # Garantir que tudo foi salvo
+      Current.account.save!
+      
+      @branding = Current.account.branding_settings
+      render :show
+    rescue ActiveRecord::RecordInvalid => e
+      render_record_invalid(e)
     rescue StandardError => e
       Rails.logger.error("Error resetting branding: #{e.message}")
       Rails.logger.error(e.backtrace.join("\n"))

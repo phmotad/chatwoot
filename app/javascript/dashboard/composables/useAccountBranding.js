@@ -173,8 +173,12 @@ export function useAccountBranding() {
         accountId: accountId.value,
         branding: brandingData,
       });
+      
+      // Fetch fresh branding data to ensure we have the latest URLs
+      await fetchBranding();
+      
       // Wait a bit for the store to update, then apply branding
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise(resolve => setTimeout(resolve, 200));
       applyBranding();
     } catch (error) {
       console.error('Error updating branding:', error);
@@ -190,8 +194,12 @@ export function useAccountBranding() {
 
     try {
       await store.dispatch('accounts/resetBranding', accountId.value);
+      
+      // Fetch fresh branding data to ensure we have the latest state
+      await fetchBranding();
+      
       // Wait a bit for the store to update, then apply branding
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise(resolve => setTimeout(resolve, 200));
       applyBranding();
       
       // Reset favicon to default (will be handled by applyBranding if logo_thumbnail_url is null)

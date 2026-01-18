@@ -244,7 +244,7 @@ class Account < ApplicationRecord
     # This method only handles color updates
 
     self.settings['branding'] = branding
-    save
+    save! # Use save! to raise errors if validation fails
   end
 
   private
