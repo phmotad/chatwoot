@@ -201,7 +201,15 @@ export const actions = {
       });
       
       commit(types.default.SET_ACCOUNT_UI_FLAG, { isUpdating: false });
+      console.log('✅ Store updateBranding completed successfully');
     } catch (error) {
+      console.error('❌ Store updateBranding error:', error);
+      console.error('❌ Error details:', {
+        message: error.message,
+        response: error.response,
+        status: error.response?.status,
+        data: error.response?.data
+      });
       commit(types.default.SET_ACCOUNT_UI_FLAG, { isUpdating: false });
       throwErrorMessage(error);
       throw error;
