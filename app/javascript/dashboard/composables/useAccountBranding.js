@@ -271,6 +271,28 @@ export function useAccountBranding() {
     { deep: true, immediate: true }
   );
 
+  // Watch for dark mode changes and reapply branding
+  let darkModeObserver = null;
+
+  onMounted(() => {
+    // Observe body class changes for dark mode
+    if (document.body) {
+      darkModeObserver = new MutationObserver(() => {
+        applyBranding();
+      });
+      darkModeObserver.observe(document.body, {
+        attributes: true,
+        attributeFilter: ['class']
+      });
+    }
+  });
+
+  onBeforeUnmount(() => {
+    if (darkModeObserver) {
+      darkModeObserver.disconnect();
+    }
+  });
+
   return {
     branding,
     applyBranding,
