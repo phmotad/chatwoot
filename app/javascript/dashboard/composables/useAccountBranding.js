@@ -62,7 +62,9 @@ export function useAccountBranding() {
       document.head.appendChild(style);
     }
     style.textContent = `
-      :root {
+      :root,
+      :root.dark,
+      body.dark {
         --n-brand: ${primaryColor};
         --brand-color: ${primaryColor};
         --brand-color-rgb: ${rgb};
@@ -72,10 +74,22 @@ export function useAccountBranding() {
         --blue-12: ${primaryColor};
         --text-blue: ${rgb};
       }
-      .bg-n-brand { background-color: ${primaryColor} !important; }
-      .text-n-brand { color: ${primaryColor} !important; }
-      .border-n-brand { border-color: ${primaryColor} !important; }
-      .outline-n-brand { outline-color: ${primaryColor} !important; }
+      .bg-n-brand,
+      .dark .bg-n-brand { background-color: ${primaryColor} !important; }
+      .text-n-brand,
+      .dark .text-n-brand { color: ${primaryColor} !important; }
+      .border-n-brand,
+      .dark .border-n-brand { border-color: ${primaryColor} !important; }
+      .outline-n-brand,
+      .dark .outline-n-brand { outline-color: ${primaryColor} !important; }
+      /* Ensure brand colors work in dark mode */
+      .dark .bg-n-brand,
+      .dark .text-n-brand,
+      .dark .border-n-brand,
+      .dark .outline-n-brand {
+        --n-brand: ${primaryColor};
+        --brand-color: ${primaryColor};
+      }
     `;
 
     // Use secondary color if available, otherwise use FireAgent secondary orange default
