@@ -235,16 +235,36 @@ class Account < ApplicationRecord
   end
 
   def update_branding(params)
-    branding = settings['branding'] || {}
+    Rails.logger.info("Account#update_branding called with params: #{params.inspect}")
+    Rails.logger.info("Current settings['branding']: #{settings['branding'].inspect}")
+    
+    # Get current branding or initialize empty hash
+    branding = (settings['branding'] || {}).dup
 
-    branding['primary_color'] = params[:primary_color] if params[:primary_color].present?
-    branding['secondary_color'] = params[:secondary_color] if params[:secondary_color].present?
+    if params[:primary_color].present?
+      branding['primary_color'] = params[:primary_color]
+      Rails.logger.info("Set primary_color to: #{params[:primary_color]}")
+    end
+    
+    if params[:secondary_color].present?
+      branding['secondary_color'] = params[:secondary_color]
+      Rails.logger.info("Set secondary_color to: #{params[:secondary_color]}")
+    end
 
     # Logos are processed separately in the controller via process_attached_logo
     # This method only handles color updates
 
-    self.settings['branding'] = branding
-    save! # Use save! to raise errors if validation fails
+    # Update settings hash - this should mark the attribute as dirty
+    self.settings = settings.merge('branding' => branding)
+    Rails.logger.info("Settings['branding'] after update: #{settings['branding'].inspect}")
+    Rails.logger.info("Settings changed?: #{settings_changed?}")
+    Rails.logger.info("Will save?: #{will_save_change_to_settings?}")
+    
+    result = save! # Use save! to raise errors if validation fails
+    Rails.logger.info("Save result: #{result.inspect}")
+    Rails.logger.info("Settings['branding'] after save: #{settings['branding'].inspect}")
+    
+    result
   end
 
   private

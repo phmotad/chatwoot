@@ -225,7 +225,9 @@ const handleSubmit = async () => {
       },
     };
 
+    console.log('🔄 Sending branding update:', brandingData);
     await updateBranding(brandingData);
+    console.log('✅ Branding update completed');
     
     // Refresh branding data after update
     await fetchBranding();
