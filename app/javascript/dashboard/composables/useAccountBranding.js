@@ -225,12 +225,13 @@ export function useAccountBranding() {
   };
 
   // Apply branding on mount
-  onMounted(() => {
+  onMounted(async () => {
+    // Always fetch branding first to ensure we have latest data
+    await fetchBranding();
+    // Wait a bit for store to update
+    await new Promise(resolve => setTimeout(resolve, 100));
+    // Then apply branding
     applyBranding();
-    // Fetch branding if not already in store
-    if (!branding.value || Object.keys(branding.value).length === 0) {
-      fetchBranding();
-    }
   });
 
   // Watch for branding changes and reapply

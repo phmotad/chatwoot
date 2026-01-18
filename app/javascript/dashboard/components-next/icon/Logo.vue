@@ -1,16 +1,31 @@
 <script setup>
-import { useAttrs } from 'vue';
+import { useAttrs, computed } from 'vue';
 import { useMapGetter } from 'dashboard/composables/store';
+import { useAccount } from 'dashboard/composables/useAccount';
 
 const attrs = useAttrs();
 const globalConfig = useMapGetter('globalConfig/get');
+const { currentAccount } = useAccount();
+
+// Use account branding logo if available, otherwise fallback to global config
+const logoUrl = computed(() => {
+  const brandingLogo = currentAccount.value?.branding_settings?.logo_url;
+  if (brandingLogo) {
+    // Ensure absolute URL
+    return brandingLogo.startsWith('http') 
+      ? brandingLogo 
+      : `${window.location.origin}${brandingLogo}`;
+  }
+  return globalConfig.value?.logoThumbnail;
+});
 </script>
 
 <template>
   <img
-    v-if="globalConfig.logoThumbnail"
+    v-if="logoUrl"
     v-bind="attrs"
-    :src="globalConfig.logoThumbnail"
+    :src="logoUrl"
+    alt="Logo"
   />
   <svg
     v-else
