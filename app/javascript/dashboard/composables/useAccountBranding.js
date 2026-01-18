@@ -29,12 +29,12 @@ export function useAccountBranding() {
    * Applies branding colors to CSS custom properties
    */
   const applyBranding = () => {
-    if (!branding.value) return;
-
     const root = document.documentElement;
 
-    if (branding.value.primary_color) {
-      const primaryColor = branding.value.primary_color;
+    // Use branding color if available, otherwise use FireAgent orange default
+    const primaryColor = branding.value?.primary_color || '#FF5C00';
+    
+    if (primaryColor) {
       
       // Set CSS custom properties for brand color
       root.style.setProperty('--n-brand', primaryColor);

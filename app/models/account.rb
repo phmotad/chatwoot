@@ -224,9 +224,10 @@ class Account < ApplicationRecord
     default = {
       primary_color: GlobalConfig.get('BRAND_COLOR')['BRAND_COLOR'] || '#FF5C00',
       secondary_color: '#FF7A33',
-      logo_url: branding_logo.attached? ? rails_blob_path(branding_logo, only_path: true) : (GlobalConfig.get('LOGO')['LOGO'] || '/brand-assets/logo.svg'),
-      logo_dark_url: branding_logo_dark.attached? ? rails_blob_path(branding_logo_dark, only_path: true) : (GlobalConfig.get('LOGO_DARK')['LOGO_DARK'] || '/brand-assets/logo_dark.svg'),
-      logo_thumbnail_url: branding_logo_thumbnail.attached? ? rails_blob_path(branding_logo_thumbnail, only_path: true) : (GlobalConfig.get('LOGO_THUMBNAIL')['LOGO_THUMBNAIL'] || '/brand-assets/logo_thumbnail.svg'),
+      # Only return logo URLs if customized, otherwise return nil (no fallback to Chatwoot logo)
+      logo_url: branding_logo.attached? ? rails_blob_path(branding_logo, only_path: true) : nil,
+      logo_dark_url: branding_logo_dark.attached? ? rails_blob_path(branding_logo_dark, only_path: true) : nil,
+      logo_thumbnail_url: branding_logo_thumbnail.attached? ? rails_blob_path(branding_logo_thumbnail, only_path: true) : nil,
       is_customized: branding_customized?
     }
 
