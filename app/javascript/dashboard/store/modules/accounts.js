@@ -191,14 +191,8 @@ export const actions = {
         branding: brandingData,
       });
       
-      // Update account in store to reflect branding changes (this will refresh the account)
-      await dispatch('get');
-      
-      // Ensure branding is still set after get() updates the account
-      commit(types.default.SET_ACCOUNT_BRANDING, {
-        accountId,
-        branding: brandingData,
-      });
+      // Don't call dispatch('get') here as it will overwrite the branding we just saved
+      // The branding is already updated in the store via SET_ACCOUNT_BRANDING
       
       commit(types.default.SET_ACCOUNT_UI_FLAG, { isUpdating: false });
       console.log('✅ Store updateBranding completed successfully');
