@@ -13,28 +13,35 @@ class Api::V1::Accounts::BrandingController < Api::V1::Accounts::BaseController
     Rails.logger.info("Branding params: #{params[:branding].inspect}")
     
     ActiveRecord::Base.transaction do
-      # Processar cores
+      # Processar cores - pode vir como params[:branding][:branding] ou params[:branding]
+      branding_data = params[:branding][:branding] || params[:branding]
+      
       colors_params = {
-        primary_color: params.dig(:branding, :primary_color),
-        secondary_color: params.dig(:branding, :secondary_color)
+        primary_color: branding_data&.dig(:primary_color),
+        secondary_color: branding_data&.dig(:secondary_color)
       }.compact
       
+      Rails.logger.info("Branding data: #{branding_data.inspect}")
       Rails.logger.info("Colors params: #{colors_params.inspect}")
 
       # Processar logos via blob_id (padrão do projeto)
-      if params.dig(:branding, :logo_blob_id).present?
-        Rails.logger.info("Processing branding_logo with blob_id: #{params.dig(:branding, :logo_blob_id)}")
-        process_attached_logo(:branding_logo, params.dig(:branding, :logo_blob_id))
+      logo_blob_id = branding_data&.dig(:logo_blob_id)
+      logo_dark_blob_id = branding_data&.dig(:logo_dark_blob_id)
+      logo_thumbnail_blob_id = branding_data&.dig(:logo_thumbnail_blob_id)
+      
+      if logo_blob_id.present?
+        Rails.logger.info("Processing branding_logo with blob_id: #{logo_blob_id}")
+        process_attached_logo(:branding_logo, logo_blob_id)
       end
       
-      if params.dig(:branding, :logo_dark_blob_id).present?
-        Rails.logger.info("Processing branding_logo_dark with blob_id: #{params.dig(:branding, :logo_dark_blob_id)}")
-        process_attached_logo(:branding_logo_dark, params.dig(:branding, :logo_dark_blob_id))
+      if logo_dark_blob_id.present?
+        Rails.logger.info("Processing branding_logo_dark with blob_id: #{logo_dark_blob_id}")
+        process_attached_logo(:branding_logo_dark, logo_dark_blob_id)
       end
       
-      if params.dig(:branding, :logo_thumbnail_blob_id).present?
-        Rails.logger.info("Processing branding_logo_thumbnail with blob_id: #{params.dig(:branding, :logo_thumbnail_blob_id)}")
-        process_attached_logo(:branding_logo_thumbnail, params.dig(:branding, :logo_thumbnail_blob_id))
+      if logo_thumbnail_blob_id.present?
+        Rails.logger.info("Processing branding_logo_thumbnail with blob_id: #{logo_thumbnail_blob_id}")
+        process_attached_logo(:branding_logo_thumbnail, logo_thumbnail_blob_id)
       end
 
       # Atualizar cores no settings
