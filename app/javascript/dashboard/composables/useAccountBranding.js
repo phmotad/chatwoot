@@ -166,22 +166,36 @@ export function useAccountBranding() {
    * @param {Object} brandingData - Branding data to update
    */
   const updateBranding = async brandingData => {
-    if (!accountId.value) return;
+    console.log('🔄 Composable updateBranding called:', { accountId: accountId.value, brandingData });
+    if (!accountId.value) {
+      console.error('❌ No accountId available');
+      return;
+    }
 
     try {
+      console.log('📡 Dispatching store action...');
       await store.dispatch('accounts/updateBranding', {
         accountId: accountId.value,
         branding: brandingData,
       });
+      console.log('✅ Store action completed');
       
       // Fetch fresh branding data to ensure we have the latest URLs
       await fetchBranding();
       
       // Wait a bit for the store to update, then apply branding
       await new Promise(resolve => setTimeout(resolve, 200));
+      console.log('🎨 Applying branding...');
       applyBranding();
+      console.log('✅ Branding update completed successfully');
     } catch (error) {
-      console.error('Error updating branding:', error);
+      console.error('❌ Composable updateBranding error:', error);
+      console.error('❌ Error details:', {
+        message: error.message,
+        response: error.response,
+        status: error.response?.status,
+        data: error.response?.data
+      });
       throw error;
     }
   };

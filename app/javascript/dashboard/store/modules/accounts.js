@@ -177,9 +177,12 @@ export const actions = {
   },
 
   updateBranding: async ({ commit, dispatch }, { accountId, branding }) => {
+    console.log('🔄 Store updateBranding action called:', { accountId, branding });
     commit(types.default.SET_ACCOUNT_UI_FLAG, { isUpdating: true });
     try {
+      console.log('📡 Calling BrandingAPI.update...');
       const response = await BrandingAPI.update(accountId, { branding });
+      console.log('✅ BrandingAPI.update response received:', response);
       const brandingData = response.data.branding;
       
       // Update branding in store immediately

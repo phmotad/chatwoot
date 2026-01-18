@@ -225,9 +225,15 @@ const handleSubmit = async () => {
       },
     };
 
-    console.log('🔄 Sending branding update:', brandingData);
-    await updateBranding(brandingData);
-    console.log('✅ Branding update completed');
+    console.log('🔄 Index.vue: Sending branding update:', brandingData);
+    console.log('🔄 Index.vue: AccountId:', accountId.value);
+    try {
+      await updateBranding(brandingData);
+      console.log('✅ Index.vue: Branding update completed');
+    } catch (error) {
+      console.error('❌ Index.vue: Error in updateBranding:', error);
+      throw error; // Re-throw to be caught by outer try-catch
+    }
     
     // Refresh branding data after update
     await fetchBranding();
