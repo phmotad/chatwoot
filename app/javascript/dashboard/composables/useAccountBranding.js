@@ -224,14 +224,30 @@ export function useAccountBranding() {
     }
   };
 
+  // Watch for accountId changes and fetch branding
+  watch(
+    accountId,
+    async (newAccountId) => {
+      if (newAccountId) {
+        await fetchBranding();
+        // Wait a bit for store to update
+        await new Promise(resolve => setTimeout(resolve, 100));
+        applyBranding();
+      }
+    },
+    { immediate: true }
+  );
+
   // Apply branding on mount
   onMounted(async () => {
     // Always fetch branding first to ensure we have latest data
-    await fetchBranding();
-    // Wait a bit for store to update
-    await new Promise(resolve => setTimeout(resolve, 100));
-    // Then apply branding
-    applyBranding();
+    if (accountId.value) {
+      await fetchBranding();
+      // Wait a bit for store to update
+      await new Promise(resolve => setTimeout(resolve, 100));
+      // Then apply branding
+      applyBranding();
+    }
   });
 
   // Watch for branding changes and reapply
@@ -240,7 +256,7 @@ export function useAccountBranding() {
     () => {
       applyBranding();
     },
-    { deep: true }
+    { deep: true, immediate: true }
   );
 
   return {
